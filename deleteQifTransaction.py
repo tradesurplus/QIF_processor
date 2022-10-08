@@ -77,35 +77,12 @@ def deleteqiftran(infile):
                     curitem.date = None
                     curitem.amount = None
                     curitem.payee = None
-                # if re.search('9088', tfrfmaccount):
-                #     curitem.category = 'L[Current Assets:NAB iSaver 9088]'
-                #     curitem.payee = 'PTransfer'
-                # elif re.search('8134', tfrfmaccount):
-                #     curitem.category = 'L[Current Assets:NAB Cash Manager 8134]'
-                #     curitem.payee = 'PTransfer'
-                # elif re.search('6150', tfrtoaccount):
-                #     curitem.category = 'L[Current Assets:NAB Classic Banking (cheque) 6150]'
-                #     curitem.payee = 'PTransfer'
-                # if re.search('6150', tfrtoaccount):
-                #     curitem.category = 'L[Current Assets:NAB Classic Banking (cheque) 6150]'
-                #     curitem.payee = 'PTransfer'
-                # elif re.search('8134', tfrtoaccount):
-                #     curitem.category = 'L[Current Assets:NAB Cash Manager 8134]'
-                #     curitem.payee = 'PTransfer'
-                # elif re.search('3215', tfrtoaccount):
-                #     curitem.category = 'L[Current Assets:NAB Cash Manager 3215]'
-                #     curitem.payee = 'PTransfer'
-                # elif re.search('9088', tfrtoaccount):
-                #     curitem.category = 'L[Current Assets:NAB iSaver 9088]'
-                #     curitem.payee = 'PTransfer'
                 else:
                     curitem.payee = line[0] + line[1:-1]
             else:
                 curitem.payee = line[0] + line[1:-1]
         elif line[0] == 'M':
             curitem.memo = line[1:-1]
-        # elif line[0] == 'A':
-        #    curitem.address = line[1:-1]
         elif line[0] == 'L':
             curitem.category = line[1:-1]
         elif line[0] == 'S':
@@ -123,9 +100,6 @@ def deleteqiftran(infile):
                 curitem.amountInSplit.append(";" + line[1:-1])
             except AttributeError:
                 curitem.amountInSplit = line[1:-1]
-        # else:
-            # don't recognise this line; ignore it
-            # print(f"Skipping unknown line: {line}")
         line = infile.readline()
     return transitems
 
@@ -133,7 +107,6 @@ def deleteqiftran(infile):
 def parseibline(trantype, ibline):
     # Extract details from an internet banking transaction to use in other fields
     if trantype == 'transfer':
-        # transcomponents = re.search('(ONLINE) (.*) (tfr-[0-9]{4})to([0-9]{4})(.*)', ibline)
         transcomponents = re.search('(ONLINE) (.*) tfr-([0-9]{4})to([0-9]{4})(.*)', ibline)
         transref = transcomponents.group(2)  # this goes in the M field
         tfrfmaccount = transcomponents.group(3)  # this goes in the L field
