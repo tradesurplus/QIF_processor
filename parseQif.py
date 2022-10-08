@@ -6,6 +6,7 @@ load a QIF file into a sequence of those classes.
 It's enough to be useful for writing conversions.
 """
 
+import argparse
 import re
 import sys
 
@@ -28,18 +29,19 @@ class QifItem:
         # self.memoInSplit = None
         # self.amountOfSplit = None
 
+    """
     def show(self):
         pass
 
-    """
     def __repr__(self):
         titles = ','.join(self.order)
         tmpstring = ','.join( [str(self.__dict__[field]) for field in self.order] )
         tmpstring = tmpstring.replace('None', '')
         return titles + "," + tmpstring
-    """
+
     def __repr__(self):
         return "<QifItem date:%s amount:%s payee:%s>" % (self.date, self.amount, self.payee)
+    """
 
 
 # def dataString(self):
@@ -92,28 +94,22 @@ def parseqif(infile):
         elif line[0] == 'P':
             if re.search('tfr-', line[1:-1]):
                 transref, tfrfmaccount, tfrtoaccount = parseibline('transfer', line[1:-1])
+                # search tfrfmaccount and tfrtoaccount for the value passed via '-a' or '--account'
+                tfraccount = args.account
                 curitem.memo = 'MRef:  ' + transref
-                # if re.search('9088', tfrfmaccount):
-                #     curitem.category = 'L[Current Assets:NAB iSaver 9088]'
-                #     curitem.payee = 'PTransfer'
-                # elif re.search('8134', tfrfmaccount):
-                #     curitem.category = 'L[Current Assets:NAB Cash Manager 8134]'
-                #     curitem.payee = 'PTransfer'
-                # elif re.search('6150', tfrtoaccount):
-                #     curitem.category = 'L[Current Assets:NAB Classic Banking (cheque) 6150]'
-                #     curitem.payee = 'PTransfer'
-                if re.search('6150', tfrtoaccount):
-                    curitem.category = 'L[Current Assets:NAB Classic Banking (cheque) 6150]'
-                    curitem.payee = 'PTransfer'
-                elif re.search('8134', tfrtoaccount):
-                    curitem.category = 'L[Current Assets:NAB Cash Manager 8134]'
-                    curitem.payee = 'PTransfer'
-                elif re.search('3215', tfrtoaccount):
-                    curitem.category = 'L[Current Assets:NAB Cash Manager 3215]'
-                    curitem.payee = 'PTransfer'
-                elif re.search('9088', tfrtoaccount):
-                    curitem.category = 'L[Current Assets:NAB iSaver 9088]'
-                    curitem.payee = 'PTransfer'
+                if tfraccount == tfrfmaccount or tfraccount == tfrtoaccount:
+                    if tfraccount == '9088':
+                        curitem.category = 'L[Current Assets:NAB iSaver 9088]'
+                        curitem.payee = 'PTransfer'
+                    elif tfraccount == '8134':
+                        curitem.category = 'L[Current Assets:NAB Cash Manager 8134]'
+                        curitem.payee = 'PTransfer'
+                    elif tfraccount == '6150':
+                        curitem.category = 'L[Current Assets:NAB Classic Banking (cheque) 6150]'
+                        curitem.payee = 'PTransfer'
+                    elif tfraccount == '3215':
+                        curitem.category = 'L[Current Assets:NAB Cash Manager 3215]'
+                        curitem.payee = 'PTransfer'
             elif re.search('^BPAY', line[1:-1]):
                 transref, tranpayee = parseibline('bpay', line[1:-1])
                 curitem.memo = 'MRef:  ' + transref
@@ -207,5 +203,7 @@ def parseibline(trantype, ibline):
 
 if __name__ == "__main__":
     # read from stdin and write amended QIF to stdout
-    # items = parseqif(sys.stdin)
+    qifparser = argparse.ArgumentParser(description='Get transaction identifier')
+    qifparser.add_argument('-a', '--account', type=str, metavar='', help='The account from which transactions have been extracted.')
+    args = qifparser.parse_args()
     parseqif(sys.stdin)
