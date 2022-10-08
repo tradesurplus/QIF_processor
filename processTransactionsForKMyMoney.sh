@@ -11,8 +11,9 @@ usage() {
         print "  -i  QIF export from online banking"
 }
 
-while getopts ":i:" opt; do
+while getopts ":a:i:" opt; do
     case $opt in
+                a) account=$OPTARG;;
                 i) inputfile=$OPTARG;;
                 h|*) usage; exit 1;;
     esac
@@ -21,5 +22,5 @@ shift $(($OPTIND - 1))
 
 eval cd ${EXEDIR}
 
-sed 's/\r$//' ${inputfile} | ./parseQif.py > parsed${processedTime}${inputfile}
+sed 's/\r$//' ${inputfile} | ./parseQif.py -a ${account} > parsed${processedTime}${inputfile}
 sed -i '1s;^;!Type:Bank\n;' parsed${processedTime}${inputfile}
