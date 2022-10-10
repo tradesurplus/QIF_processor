@@ -12,7 +12,6 @@ import sys
 
 
 class QifItem:
-
     def __init__(self):
         # self.order = ['date', 'amount', 'cleared', 'num', 'payee', 'memo', 'address', 'category',
         # 'categoryInSplit', 'memoInSplit', 'amountOfSplit']
@@ -30,28 +29,19 @@ class QifItem:
         # self.amountOfSplit = None
 
     """
-    def show(self):
-        pass
-
-    def __repr__(self):
-        titles = ','.join(self.order)
-        tmpstring = ','.join( [str(self.__dict__[field]) for field in self.order] )
-        tmpstring = tmpstring.replace('None', '')
-        return titles + "," + tmpstring
-
     def __repr__(self):
         return "<QifItem date:%s amount:%s payee:%s>" % (self.date, self.amount, self.payee)
     """
 
+def main() -> None:
+    # read from stdin and write amended QIF to stdout
+    parseqif(sys.stdin)
 
-# def dataString(self):
-#     """
-#     Returns the data of this QIF without a header row
-#     """
-#     tmpstring = ','.join([str(self.__dict__[field]) for field in self.order])
-#     tmpstring = tmpstring.replace('None', '')
-#     return tmpstring
-
+def parse_args():
+    qifparser = argparse.ArgumentParser(description='Get transaction identifier')
+    qifparser.add_argument('-a', '--account', type=str, metavar='', help='The account from which transactions have been extracted.')
+    args = qifparser.parse_args()
+    return args
 
 def parseqif(infile):
     """
@@ -95,7 +85,8 @@ def parseqif(infile):
             if re.search('tfr-', line[1:-1]):
                 transref, tfrfmaccount, tfrtoaccount = parseibline('transfer', line[1:-1])
                 # search tfrfmaccount and tfrtoaccount for the value passed via '-a' or '--account'
-                tfraccount = args.account
+                cmdlineargs = parse_args()
+                tfraccount = cmdlineargs.account
                 curitem.memo = 'MRef:  ' + transref
                 if tfraccount == tfrfmaccount or tfraccount == tfrtoaccount:
                     if tfraccount == '9088':
@@ -202,8 +193,4 @@ def parseibline(trantype, ibline):
 
 
 if __name__ == "__main__":
-    # read from stdin and write amended QIF to stdout
-    qifparser = argparse.ArgumentParser(description='Get transaction identifier')
-    qifparser.add_argument('-a', '--account', type=str, metavar='', help='The account from which transactions have been extracted.')
-    args = qifparser.parse_args()
-    parseqif(sys.stdin)
+    main()
