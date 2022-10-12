@@ -45,10 +45,16 @@ def parse_args():
 
 def parseqif(infile):
     """
-    Parse a qif file and return a list of entries.
+    Parse a qif file and return a list of entries.https://studio.youtube.com/channel/UChwjuctjGnraR27o0gsK8iA/videos
     infile should be open file-like object (supporting readline() ).
     """
 
+    accounts = {
+        '3215':'Current Assets:NAB Cash Manager 3215',
+        '6150':'Current Assets:NAB Classic Banking (cheque) 6150',
+        '8134':'Current Assets:NAB Cash Manager 8134',
+        '9088':'Current Assets:NAB iSaver 9088'
+    }
     transitems = []
     curitem = QifItem()
     line = infile.readline()
@@ -89,6 +95,9 @@ def parseqif(infile):
                 tfraccount = cmdlineargs.account
                 curitem.memo = 'MRef:  ' + transref
                 if tfraccount == tfrfmaccount or tfraccount == tfrtoaccount:
+                    curitem.category = 'L[' + accounts[tfraccount] + ']'
+                    curitem.payee = 'PTransfer'
+                    '''
                     if tfraccount == '9088':
                         curitem.category = 'L[Current Assets:NAB iSaver 9088]'
                         curitem.payee = 'PTransfer'
@@ -101,6 +110,7 @@ def parseqif(infile):
                     elif tfraccount == '3215':
                         curitem.category = 'L[Current Assets:NAB Cash Manager 3215]'
                         curitem.payee = 'PTransfer'
+                    '''
             elif re.search('^BPAY', line[1:-1]):
                 transref, tranpayee = parseibline('bpay', line[1:-1])
                 curitem.memo = 'MRef:  ' + transref
