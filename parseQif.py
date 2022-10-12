@@ -49,6 +49,7 @@ def parseqif(infile):
     infile should be open file-like object (supporting readline() ).
     """
 
+    # dictionary of currently used accounts
     accounts = {
         '3215':'Current Assets:NAB Cash Manager 3215',
         '6150':'Current Assets:NAB Classic Banking (cheque) 6150',
@@ -97,20 +98,6 @@ def parseqif(infile):
                 if tfraccount == tfrfmaccount or tfraccount == tfrtoaccount:
                     curitem.category = 'L[' + accounts[tfraccount] + ']'
                     curitem.payee = 'PTransfer'
-                    '''
-                    if tfraccount == '9088':
-                        curitem.category = 'L[Current Assets:NAB iSaver 9088]'
-                        curitem.payee = 'PTransfer'
-                    elif tfraccount == '8134':
-                        curitem.category = 'L[Current Assets:NAB Cash Manager 8134]'
-                        curitem.payee = 'PTransfer'
-                    elif tfraccount == '6150':
-                        curitem.category = 'L[Current Assets:NAB Classic Banking (cheque) 6150]'
-                        curitem.payee = 'PTransfer'
-                    elif tfraccount == '3215':
-                        curitem.category = 'L[Current Assets:NAB Cash Manager 3215]'
-                        curitem.payee = 'PTransfer'
-                    '''
             elif re.search('^BPAY', line[1:-1]):
                 transref, tranpayee = parseibline('bpay', line[1:-1])
                 curitem.memo = 'MRef:  ' + transref
