@@ -45,7 +45,7 @@ def parse_args():
 
 def parseqif(infile):
     """
-    Parse a qif file and return a list of entries.https://studio.youtube.com/channel/UChwjuctjGnraR27o0gsK8iA/videos
+    Parse a qif file and return a list of entries.
     infile should be open file-like object (supporting readline() ).
     """
 
