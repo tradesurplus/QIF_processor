@@ -7,6 +7,7 @@ It's enough to be useful for writing conversions.
 """
 
 import argparse
+from datetime import datetime
 import re
 import sys
 
@@ -78,7 +79,9 @@ def parseqif(infile):
             curitem = QifItem()
             transitems = []
         elif line[0] == 'D':
-            curitem.date = line[0] + line[1:-1]
+            converteddate = datetime.strptime(line[1:-1], '%d/%m/%y').strftime('%Y-%m-%d')
+            curitem.date = line[0] + converteddate
+            #curitem.date = line[0] + line[1:-1]
         elif line[0] == 'T':
             curitem.amount = line[0] + line[1:-1]
         # elif line[0] == 'N':
@@ -95,11 +98,23 @@ def parseqif(infile):
                 cmdlineargs = parse_args()
                 tfraccount = cmdlineargs.account
                 curitem.memo = 'MRef:  ' + transref
-                if tfraccount == tfrfmaccount or tfraccount == tfrtoaccount:
-                    curitem.category = 'L[' + accounts[tfraccount] + ']'
-                    curitem.payee = 'PTransfer'
+                if tfraccount == tfrfmaccount:
+                    curitem.category = 'L[' + accounts[tfrtoaccount] + ']'
+                elif tfraccount == tfrtoaccount:
+                    curitem.category = 'L[' + accounts[tfrfmaccount] + ']'
+                curitem.payee = 'PTransfer'
             elif re.search('^BPAY', line[1:-1]):
                 transref, tranpayee = parseibline('bpay', line[1:-1])
+                curitem.memo = 'MRef:  ' + transref
+                # curitem.payee = 'P' + tranpayee
+                curitem.payee = line[0] + line[1:-1]
+            elif re.search('^MOOSE', line[1:-1]):
+                transref = parseibline('moose', line[1:-1])
+                curitem.memo = 'MRef:  ' + transref
+                # curitem.payee = 'P' + tranpayee
+                curitem.payee = line[0] + line[1:-1]
+            elif re.search('OCSP', line[1:-1]):
+                transref = parseibline('ocsp', line[1:-1])
                 curitem.memo = 'MRef:  ' + transref
                 # curitem.payee = 'P' + tranpayee
                 curitem.payee = line[0] + line[1:-1]
@@ -142,7 +157,9 @@ def lookupcategory(payee):
     """
     categorydict = {
         # 'tfr-9088': '[Current Assets:NAB iSaver 9088]',
-        'NAB': 'Interest Income:Savings Interest'
+        'NAB':'Interest Income:Savings Interest',
+        'ORIGINgas':'Utilities:Gas',
+        'ORIGINelectric':'Utilities:Electric'
     }
     # category = categorydict.get(payee, 'Uncategorised')
     category = categorydict.get(payee)
@@ -162,8 +179,12 @@ def parsepayeeline(payeelinefrombank):
     attached to the payee properties so this my not be necessary for
     simple transaction/payee matches.
     """
-    if re.search('INTEREST', payeelinefrombank):
+    if re.search('INTEREST|null', payeelinefrombank):
         payeename = 'NAB'
+    elif re.search('300006206027', payeelinefrombank):
+        payeename = 'ORIGINgas'
+    elif re.search('300001204225', payeelinefrombank):
+        payeename = 'ORIGINelectric'
     else:
         # print(f"Can't find customer {payeelinefrombank}")
         payeename = payeelinefrombank
@@ -187,6 +208,16 @@ def parseibline(trantype, ibline):
         transref = transcomponents.group(1)
         tranpayee = transcomponents.group(2)
         return transref, tranpayee
+    
+    if trantype == 'moose':
+        transcomponents = re.search(r'MOOSE MOBILE\s+(.{11}).*', ibline)
+        transref = transcomponents.group(1)
+        return transref
+    
+    if trantype == 'ocsp':
+        transcomponents = re.search(r'.*OCSP029234K (.{11}).*', ibline)
+        transref = transcomponents.group(1)
+        return transref
 
 
 if __name__ == "__main__":
