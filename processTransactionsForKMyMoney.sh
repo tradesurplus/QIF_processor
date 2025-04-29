@@ -3,7 +3,7 @@
 # command line instructions to emulate:
 # sed 's/\r$//' QIF_TransactionHistory_test_file.qif | ./parseQif.py > test.qif; sed -i '1s;^;!Type:Bank\n;' test.qif
 
-EXEDIR="/home/john/SpiderOak\ Hive/SpiderOak/dev/KMyMoney/"
+EXEDIR="/mnt/storage/cloudSync/encryptedByVault/dev/KMyMoney/"
 export processedTime=`date '+%Y%m%d_%H%M%S'`
 
 usage() {
